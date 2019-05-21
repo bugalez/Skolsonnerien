@@ -1,0 +1,251 @@
+// Components/PrestationDetail.js
+
+import React from 'react'
+import {
+  StyleSheet,
+  View,
+  Text,
+  ActivityIndicator,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Share,
+  Alert,
+  Platform
+ } from 'react-native'
+import { getPrestationDetailFromAPI } from '../API/SkolApi'
+import { connect } from 'react-redux'
+import moment from 'moment'
+import localization from 'moment/locale/fr'
+
+class PrestationDetail extends React.Component{
+
+  constructor(props) {
+    super(props)
+    this.state = {
+      prestation: undefined,
+      isLoading: true
+    }
+  }
+
+  _displayFloatingActionButton() {
+    const { prestation } = this.state
+    if(prestation != undefined) {
+      return(
+        <TouchableOpacity
+          style={styles.share_touchable_floatingactionbutton}
+          onPress={()=> this._sharePrestation()} >
+          <Image
+            style={styles.share_image}
+            source={require('../Images/ic_share.android.png')}
+          />
+        </TouchableOpacity>
+      )
+    }
+  }
+
+  _sharePrestation(){
+    const { prestation } = this.state
+    Share.share({ title: prestation.sortie, message:"Bonjour je suis dispo pour " + prestation.lieu})
+      .then(
+        Alert.alert(
+          'Succès',
+          'Sortie envoyé',
+          [
+            {text: 'OK', onPress: ()=>{}}
+          ]
+        )
+      )
+      .catch(err=>
+        Alert.alert(
+          'Echec',
+          'Sortie non envoyé',
+          [
+            {text: 'OK', onPress: ()=>{}}
+          ]
+        )
+
+      )
+  }
+
+  _displayFavoriteImage() {
+    var sourceImage = require('../Images/icons8-ok-50-1.png')
+    if (this.props.favoritesPrestation.findIndex(item => item.id === this.state.prestation.id) !== -1) {
+      // Film dans nos favoris
+      sourceImage = require('../Images/icons8-cancel-50.png')
+    }
+    return (
+      <Image
+        style={styles.favorite_image}
+        source={sourceImage}
+      />
+    )
+}
+
+  _toggleFavorite(){
+    const action = {type: 'TOOGLE_FAVORITE', value: this.state.prestation}
+    this.props.dispatch(action)
+  }
+
+  _displayLoading(){
+    if(this.state.isLoading){
+      return (
+        <View style={styles.loading_container}>
+          <ActivityIndicator size='large' color='#05458f' />
+        </View>
+      )
+    }
+  }
+
+  componentDidMount(){
+    const favoritePrestationIndex = this.props.favoritesPrestation.findIndex(item => item.id === this.props.navigation.state.params.idPrestation)
+    if(favoritePrestationIndex !== -1) {
+      this.setState({
+        prestation: this.props.favoritesPrestation[favoritePrestationIndex]
+      })
+      return
+    }
+    this.setState({ isLoading: true })
+    getPrestationDetailFromAPI(this.props.navigation.state.params.idPrestation).then(data => {
+      this.setState({
+        prestation: data,
+        isLoading: false
+      })
+    })
+  }
+
+  _displayPrestation() {
+    const { prestation } = this.state
+     if (prestation != undefined) {
+       return (
+         <ScrollView style={styles.scrollview_container}>
+           <View style={styles.main_container}>
+             <Image style={styles.image_container} source={require('../Images/skolsonnerien128x128-trans.png')}/>
+              <View style={styles.title_container}>
+               <Text style={styles.text_sortie}>{prestation.sortie}</Text>
+              </View>
+              <View style={styles.lieu_container}>
+                <Text style={styles.text_lieu}>{prestation.lieu}</Text>
+              </View>
+              <View style={styles.horaire_container}>
+                <Text style={styles.text_date}>{moment(prestation.date, 'DD/MM/YY').locale("fr", localization).format('dddd Do MMMM YYYY')}</Text>
+                <Text style={styles.text_time}>{prestation.heure}</Text>
+              </View>
+              <View style={styles.divers_container}>
+                <Text style={styles.text_nbsonneur}>Nombres de sonneurs : {prestation.nbr_sonneurs}</Text>
+                <Text style={styles.text_infos}>{prestation.infos}</Text>
+              <TouchableOpacity
+                style={styles.favorite_container}
+                onPress={()=>this._toggleFavorite()}>
+                {this._displayFavoriteImage()}
+              </TouchableOpacity>
+              </View>
+          </View>
+         </ScrollView>
+       )
+     }
+   }
+
+  render(){
+    return(
+      <View style={styles.main_container}>
+        {this._displayLoading()}
+        {this._displayPrestation()}
+        {this._displayFloatingActionButton()}
+
+      </View>
+    )
+  }
+}
+
+const styles = StyleSheet.create({
+    main_container: {
+      flex: 1,
+    },
+    loading_container: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      alignItems: 'center',
+      justifyContent: 'center'
+    },
+    scrollview_container: {
+      flexDirection: 'row',
+    },
+    main_container: {
+      flex:1,
+      alignItems: 'center',
+      backgroundColor: '#f7c600',
+    },
+    title_container: {
+    },
+    lieu_container: {
+      paddingVertical: 20,
+    },
+    horaire_container: {
+      flexDirection: 'row',
+    },
+    text_sortie: {
+      fontSize: 20,
+      width: 300,
+      color: '#05458f',
+      flexWrap: 'wrap',
+      textAlign: 'center'
+    },
+    text_lieu: {
+      fontSize: 18,
+      color: '#05458f',
+    },
+    text_date: {
+      color: '#05458f',
+      marginRight: 50
+    },
+    text_time: {
+      color: '#05458f',
+    },
+    image_container: {
+      margin: 20,
+      height: 128,
+      width: 128
+    },
+    text_infos: {
+      color: '#05458f',
+    },
+    text_nbsonneur: {
+      color: '#05458f',
+      marginVertical: 20
+    },
+    favorite_container: {
+      alignItems: 'center'
+    },
+    favorite_image: {
+      width: 40,
+      height: 40
+    },
+    share_touchable_floatingactionbutton: {
+    position: 'absolute',
+    width: 60,
+    height: 60,
+    right: 30,
+    bottom: 30,
+    borderRadius: 30,
+    backgroundColor: '#e91e63',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  share_image: {
+    width: 30,
+    height: 30
+  }
+
+  })
+
+  const mapStateToProps = state => {
+    return {
+      favoritesPrestation : state.favoritesPrestation
+    }
+  }
+
+export default connect(mapStateToProps)(PrestationDetail)
