@@ -1,29 +1,15 @@
 {
   "expo": {
-    "name": "Skolsonnerien",
-    "slug": "Skolsonnerien",
-    "privacy": "public",
-    "sdkVersion": "32.0.0",
-    "platforms": [
-      "ios",
-      "android"
-    ],
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "splash": {
-      "image": "./assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
-    "updates": {
-      "fallbackToCacheTimeout": 0
-    },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
-    "ios": {
-      "supportsTablet": true
-    }
+   "name": "Skolsonnerien",
+   "icon": "./Images/skolsonnerien128x128-trans.png",
+   "version": "1.0.0",
+   "slug": "your-app-slug",
+   "sdkVersion": "32.0.0",
+   "ios": {
+     "bundleIdentifier": "com.yourcompany.skolsonnerien"
+   },
+   "android": {
+     "package": "com.yourcompany.skolsonnerien"
+   }
   }
 }
